@@ -1,9 +1,8 @@
 import tkinter as tk
 import numpy as np
-from PIL import Image, ImageOps
+from PIL import Image, ImageOps, ImageGrab
 
-# --- Simple neural network weights (pretend these are trained) ---
-# For demo purposes, we just use random weights — won't give real predictions!
+# --- Dummy neural net weights (replace with real trained weights for real predictions) ---
 np.random.seed(0)
 W1 = np.random.randn(784, 128) * 0.01
 b1 = np.zeros((1, 128))
@@ -54,11 +53,15 @@ class App(tk.Tk):
         self.label_result.config(text="")
 
     def on_predict(self):
-        # Save canvas to PIL image
+        # Grab the canvas area from screen
         self.canvas.update()
-        self.canvas.postscript(file="tmp_canvas.ps", colormode='color')
-        img = Image.open("tmp_canvas.ps")
-        img = img.convert('L')  # grayscale
+        x = self.canvas.winfo_rootx()
+        y = self.canvas.winfo_rooty()
+        x1 = x + self.canvas.winfo_width()
+        y1 = y + self.canvas.winfo_height()
+
+        img = ImageGrab.grab().crop((x, y, x1, y1))
+        img = img.convert('L')
         img = ImageOps.invert(img)
         img = img.resize((28, 28))
         img_array = np.array(img).astype(np.float32)
