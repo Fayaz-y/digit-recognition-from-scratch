@@ -2,13 +2,11 @@ import tkinter as tk
 from PIL import Image, ImageDraw, ImageGrab, ImageOps
 import numpy as np
 
-# --- Activation functions ---
 def relu(x): return np.maximum(0, x)
 def softmax(x):
     exp_x = np.exp(x - np.max(x, axis=1, keepdims=True))
     return exp_x / np.sum(exp_x, axis=1, keepdims=True)
 
-# --- Helper: crop digit bounding box ---
 def crop_bounding_box(img_array):
     rows = np.any(img_array, axis=1)
     cols = np.any(img_array, axis=0)
@@ -18,7 +16,6 @@ def crop_bounding_box(img_array):
     cmin, cmax = np.where(cols)[0][[0, -1]]
     return img_array[rmin:rmax+1, cmin:cmax+1]
 
-# --- Main App ---
 class App(tk.Tk):
     def __init__(self):
         super().__init__()
@@ -35,10 +32,10 @@ class App(tk.Tk):
 
         self.canvas.bind("<B1-Motion>", self.draw)
 
-        # Drawing setup
+        
         self.last_x, self.last_y = None, None
 
-        # Load trained weights
+
         weights = np.load("trained_weights.npz")
         self.W1 = weights['W1']
         self.b1 = weights['b1']
@@ -62,22 +59,18 @@ class App(tk.Tk):
         x1 = x + self.canvas.winfo_width()
         y1 = y + self.canvas.winfo_height()
 
-        # Grab and process image
         img = ImageGrab.grab().crop((x, y, x1, y1)).convert('L')
         img = ImageOps.invert(img)
         img_array = np.array(img)
 
-        # Crop bounding box
         img_array = crop_bounding_box(img_array)
 
-        # Resize to 28x28
         img = Image.fromarray(img_array).resize((28, 28))
         img_array = np.array(img).astype(np.float32) / 255.0
 
-        # Flatten for prediction
         img_array = img_array.flatten().reshape(1, -1)
 
-        # Predict
+    
         digit, conf = self.predict_digit(img_array)
         self.label_result.config(text=f"Predicted: {digit} (confidence: {conf:.2f})")
 
